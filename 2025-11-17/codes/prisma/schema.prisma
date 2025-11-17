@@ -1,0 +1,80 @@
+// D:\js projects\crm-backend\prisma\schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Using environment variable for security
+}
+
+// 1. User Model (Sales Reps, Admins, etc.)
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  role        String   @default("user")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships: A User can own many Contacts and many Deals
+  contacts    Contact[]
+  deals       Deal[]
+}
+
+// 2. Company Model (The organization a Contact works for)
+model Company {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  industry    String?
+  city        String?
+  country     String?
+  contacts    Contact[] // A Company can have many Contacts
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 3. Contact Model (The individuals you interact with)
+model Contact {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String   @unique
+  phone       String?
+  title       String?  // e.g., "Sales Manager"
+  status      String   @default("Lead") // e.g., Lead, Prospect, Customer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships:
+  // Foreign Key to the User who owns this Contact
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+
+  // Foreign Key to the Company the Contact works for (optional)
+  companyId   Int?
+  company     Company? @relation(fields: [companyId], references: [id])
+  deals       Deal[]
+}
+
+// 4. Deal/Opportunity Model (Tracking sales progress)
+model Deal {
+  id          Int      @id @default(autoincrement())
+  name        String   // e.g., "Acme Co. Annual Contract"
+  amount      Float
+  stage       String   @default("Qualification") // e.g., Qualification, Proposal, Won, Lost
+  closeDate   DateTime // Target date for closing the deal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships:
+  // Foreign Key to the User who is responsible for this Deal
+  ownerId     Int
+  owner       User     @relation(fields: [ownerId], references: [id])
+
+  // Foreign Key to the Contact involved in the Deal (optional)
+  contactId   Int?
+  contact     Contact? @relation(fields: [contactId], references: [id])
+}
