@@ -90,5 +90,3 @@ Add more routes (e.g., /api/customers)
 Begin working with Prisma models
 
 Implement CRUD (Create/Read/Update/Delete)
-
-Test endpoints with Postman or Thunder Client
